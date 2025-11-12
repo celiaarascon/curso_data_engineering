@@ -1,0 +1,162 @@
+sources:
+  - name: workout_data
+    database: alumno9_proyecto_bronze
+    schema: workout_data
+    description: "Raw layer containing untransformed data extracted from different operational systems."
+    
+    tables:
+      - name: exercises_raw
+        description: "Contains detailed information about each exercise, including the main and secondary muscles involved, movement type, and required equipment."
+        columns:
+          - name: exercise_id
+            description: "Unique identifier for each exercise."
+            tests:
+              - not_null
+              - unique
+          - name: exercise_name
+            description: "Name of the exercise"
+            tests:
+              - not_null
+          - name: primary_muscle
+            description: "Main muscle group"
+            tests:
+              - accepted_values:
+                  values: ['Quadriceps', 'Glutes', 'Hamstrings','Calves']
+          - name: secondary_muscle
+            description: "Additional muscle group"
+          - name: movement_type
+            description: "Type of movemet performed"
+            tests:
+              - accepted_values:
+                  values: ['compound', 'isolation']
+          - name: equipment
+            description: "Equipmet required to perform the exercise"
+            tests:
+              - accepted_values:
+                  values: ['Barbell', 'Machine', 'Dumbbell', 'Cable']
+
+      - name: muscule_activation_estimate_raw
+        description: "Provides estimated muscle activation scores for each exercise and muscle combination."
+        columns:
+          - name: id
+            description: "Unique identifier for each activation record."
+            tests:
+              - not_null
+              - unique
+          - name: exercise_id
+            description: "Reference to the exercise related to this activation estimate."
+            tests:
+              - not_null
+              - relationships:
+                  to: source('bronze', 'exercises_raw')
+                  field: exercise_id
+          - name: muscle
+            description: "Name of the muscle measured in this activation"
+            tests:
+              - not_null
+          - name: activation_score
+            description: "Numeric estimate of how strongly the muscle is activated during the exercise"
+            tests:
+              - not_null
+
+      - name: sessions_raw
+        description: "Contains user training session metadata such as duration, goal, and perceived exertion."
+        columns:
+          - name: session_id
+            description: "Unique identifier for each user training session."
+            tests:
+              - not_null
+              - unique
+          - name: user_id
+            description: "Identifier of the user who performed the session"
+            tests:
+              - not_null
+              - relationships:
+                  to: source('bronze', 'users_raw')
+                  field: user_id
+          - name: session_date
+            description: "Date on which the session took place"
+            tests:
+              - not_null
+          - name: session_goal
+            description: "Goal of the training session"
+          - name: duration_min
+            description: "Duration of the sessin in minutes"
+          - name: avg_intensity
+            description: "Averae training intensity"
+          - name: perceived_exertion
+            description: "How hard the session felt, subjetive measure"
+          - name: rpd
+            description: "Reported perceived discomfort"
+
+      - name: session_exercises_raw
+        description: "Links exercises to specific training sessions, including sets, repetitions, and weights performed."
+        columns:
+          - name: entry_id
+            description: "Unique identifier for each session-exercise entry."
+            tests:
+              - not_null
+              - unique
+          - name: session_id
+            description: "Reference to the session in which the exercise took place"
+            tests:
+              - not_null
+              - relationships:
+                  to: source('bronze', 'sessions_raw')
+                  field: session_id
+          - name: exercise_id
+            description: "fReference to the exercise performed during the session"
+            tests:
+              - not_null
+              - relationships:
+                  to: source('bronze', 'exercises_raw')
+                  field: exercise_id          
+          - name: sets
+            description: "Number of set performed"
+            tests:
+              - not_null
+          - name: reps
+            description: "Number or repetitions performed"
+            tests:
+              - not_null
+          - name: weight_kg
+            description: "Weight used during the session"
+            tests:
+              - not_null
+          - name: volume_kg
+            description: "Total training volume (sets × reps × weight)."
+            tests:
+              - not_null
+          - name: estimated_1rm
+            description: "Estimated one repetition maximun for the exercises in kilograms"
+            tests:
+              - not_null
+          - name: rpe_exercise
+            description: "Rate of perceived exertion"
+            tests:
+              - not_null
+
+      - name: users_raw
+        description: "Contains user demographic and experience information."
+        columns:
+          - name: user_id
+            description: "Unique identifier for each user."
+            tests:
+              - not_null
+              - unique
+          - name: first_name
+            description: "User's first name"
+          - name: last_name
+            description: "User's last name"
+          - name: age
+            description: "User's age"
+          - name: sex
+            description: "Gender identity"
+            tests:
+              - accepted_values:
+                  values: ['F','M']
+          - name: experience_level
+            description: "User's training experience level"
+            tests:
+              - accepted_values:
+                  values: ['intermediate', 'advanced', 'beginner']
