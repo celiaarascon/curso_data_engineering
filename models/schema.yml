@@ -1,0 +1,157 @@
+models:
+  - name: stg_exercises
+    description: "Staging: exercises - contrato (enforced)."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: exercise_id
+        data_type: integer
+        description: "Unique identifier for each exercise."
+        constraints:
+          - type: not_null
+      - name: exercise_name
+        data_type: string
+        description: "Name of the exercise"
+        constraints:
+          - type: not_null
+      - name: primary_muscle
+        data_type: string
+        description: "Main muscle group"
+        constraints:
+          - type: not_null
+      - name: secondary_muscle
+        data_type: string
+        description: "Additional muscle group"
+      - name: movement_type
+        data_type: string
+        description: "Type of movement performed"
+      - name: equipment
+        data_type: string
+        description: "Equipment required"
+
+  - name: stg_session_exercises
+    description: "Staging: session exercises - contrato (enforced)."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: entry_id
+        data_type: integer
+        description: "Unique entry id"
+        constraints:
+          - type: not_null
+      - name: session_id
+        data_type: integer
+        description: "Reference session id"
+        constraints:
+          - type: not_null
+      - name: exercise_id
+        data_type: integer
+        description: "Reference exercise id"
+        constraints:
+          - type: not_null
+      - name: sets
+        data_type: integer
+        description: "Number of sets"
+      - name: reps
+        data_type: integer
+        description: "Number of repetitions"
+      - name: weight_kg
+        data_type: float
+        description: "Weight used (kg)"
+      - name: volume_kg
+        data_type: float
+        tests:
+          - volume_consistency:
+              arguments:
+                volume_column: volume_kg
+                sets_column: sets
+                reps_column: reps
+                weight_column: weight_kg
+                tolerance: 0.01
+        description: "Total training volume"
+      - name: estimated_1rm
+        data_type: float
+        description: "Estimated 1RM (kg)"
+      - name: rpe_exercise
+        data_type: integer
+        description: "RPE for exercise"
+
+  - name: stg_users
+    description: "Staging: users"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: user_id
+        data_type: integer
+        description: "Unique user id"
+        constraints:
+          - type: not_null
+      - name: first_name
+        data_type: string
+        description: "User first name"
+      - name: last_name
+        data_type: string
+        description: "User last name"
+      - name: age
+        data_type: integer
+        description: "User age"
+      - name: sex
+        data_type: string
+        description: "Sex: M/F"
+      - name: experience_level
+        data_type: string
+        description: "beginner/intermediate/advanced"
+
+  - name: stg_sessions
+    description: "Staging: sessions"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: session_id
+        data_type: integer
+        description: "Unique session id"
+        constraints:
+          - type: not_null
+      - name: user_id
+        data_type: integer
+        description: "User who did the session"
+        constraints:
+          - type: not_null
+      - name: session_date
+        data_type: string
+        description: "Date of session (ISO format)"
+        tests:
+          - not_null
+      - name: session_goal
+        data_type: string
+        description: "Goal of session"
+      - name: duration_min
+        data_type: integer
+        description: "Duration in minutes"
+
+  - name: stg_muscule_activation_estimate
+    description: "Staging: muscle activation estimates"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: id
+        data_type: integer
+        description: "activation record id"
+        constraints:
+          - type: not_null
+      - name: exercise_id
+        data_type: integer
+        description: "reference exercise"
+        constraints:
+          - type: not_null
+      - name: muscle
+        data_type: string
+        description: "muscle name"
+      - name: activation_score
+        data_type: float
+        description: "activation numeric estimate"
