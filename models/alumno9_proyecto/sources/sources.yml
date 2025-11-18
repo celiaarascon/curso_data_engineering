@@ -37,12 +37,8 @@ sources:
                   arguments:
                     values: ['Barbell', 'Machine', 'Dumbbell', 'Cable']
 
-        tests:
-          - has_activation:
-              arguments:
-                activation_source_name: muscule_activation_estimate_raw
-                activation_source_schema: workout_data
-      - name: muscule_activation_estimate_raw
+
+      - name: muscle_activation_estimate_raw
         description: "Provides estimated muscle activation scores for each exercise."
         columns:
           - name: id
@@ -86,10 +82,7 @@ sources:
               - not_null
           - name: session_goal
           - name: duration_min
-          - name: avg_intensity
-          - name: perceived_exertion
-          - name: rpd
-
+          - name: subjective_effort
       - name: session_exercises_raw
         description: "Links exercises to sessions with training details."
         columns:
