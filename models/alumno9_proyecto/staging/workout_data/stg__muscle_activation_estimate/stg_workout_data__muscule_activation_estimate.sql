@@ -1,23 +1,21 @@
-{{
-  config(
-    materialized='view'
-  )
-}}
+{{ config(materialized="view") }}
 
-WITH src_sessions AS (
-    SELECT * 
-    FROM {{ source('workout_data', 'muscle_activation_estimate_raw') }}
+with
+    src_activation as (
+        select * from {{ source("workout_data", "muscle_activation_estimate_raw") }}
     ),
 
-renamed_casted AS (
-    SELECT
-        DISTINCT {{ dbt_utils.generate_surrogate_key(['id', 'exercise_id', 'muscle', 'activation_score']) }} AS muscule_activation_estimate_sk,
-        nullif(trim(id),'')::varchar as muscule_activation_estimate_key,
-        cast(exercise_id as varchar) as exercise_id,
-        cast(muscle as varchar) as muscle,
-        cast(activation_score as number(10,2)) as activation_score
-        --_fivetran_deleted AS _fivetran_deleted,
-        --convert_timezone('UTC',_fivetran_synced) as utc_time
-    FROM src_sessions
-)    
-SELECT * FROM renamed_casted
+    cleaned_activation as (
+        select
+            {{ dbt_utils.generate_surrogate_key(["id"]) }} as muscle_activation_sk,
+            nullif(trim(id), '') as muscle_activation_id,
+            nullif(trim(exercise_id), '') as exercise_id,
+            initcap(nullif(trim(muscle), '')) as muscle_name,
+            cast(activation_score as decimal(3, 2)) as activation_score
+        -- _fivetran_deleted AS _fivetran_deleted,
+        -- convert_timezone('UTC',_fivetran_synced) as utc_time
+        from src_activation
+        where id is not null
+    )
+select *
+from cleaned_activation

@@ -34,15 +34,25 @@ clean-targets:         # directories to be removed by `dbt clean`
 
 models:
   alumno9_proyecto:
+    +database: alumno9_proyecto_silver
     +materialized: view
-    # Esto creará los modelos en el schema workout_data
+
     staging:
       +materialized: view
-      +schema: workout_data
+      +database: alumno9_proyecto_silver
+      +schema: STAGING_WORKOUT_DATA  
     marts:
       +materialized: table
-      +schema: workout_data
+      +database: alumno9_proyecto_silver
+      +schema: marts_workout_data
+    
+snapshots:
+    alumno9_proyecto:
+      target_database: alumno9_proyecto_silver
+      target_schema: snapshots
+      strategy: check
 
 tests:
   alumno9_proyecto:
     +schema: workout_data
+

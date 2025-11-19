@@ -1,21 +1,19 @@
-{{
-  config(
-    materialized='view'
-  )
-}}
+{{ config(materialized="view") }}
 
-WITH src_sessions AS (
-    SELECT * 
-    FROM {{ source('workout_data', 'sessions_raw') }}
-    ),
+with
+    src_sessions as (select * from {{ source("workout_data", "sessions_raw") }}),
 
-renamed_casted AS (
-    SELECT
-        trim(session_id) as session_name_key,
-        md5(trim(session_id)) as session_date_id,
-        date
-        --_fivetran_deleted AS _fivetran_deleted,
-        --convert_timezone('UTC',_fivetran_synced) as utc_time
-    FROM src_sessions
-)    
-SELECT * FROM renamed_casted
+    prepared_date as (
+        select
+            {{ dbt_utils.generate_surrogate_key(["session_id"]) }} as session_sk,
+            nullif(trim(session_id), '') as session_id,
+            cast(session_date as date) as session_date,
+        -- EXTRACT(YEAR FROM CAST(session_date AS DATE)) AS session_year,
+        -- EXTRACT(MONTH FROM CAST(session_date AS DATE)) AS session_month,
+        -- EXTRACT(DAY FROM CAST(session_date AS DATE)) AS session_day
+        -- _fivetran_deleted AS _fivetran_deleted,
+        -- convert_timezone('UTC',_fivetran_synced) as utc_time
+        from src_sessions
+    )
+select *
+from prepared_date

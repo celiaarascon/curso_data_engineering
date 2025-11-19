@@ -1,21 +1,26 @@
-{{
-  config(
-    materialized='view'
-  )
-}}
+{{ config(materialized="view") }}
 
-WITH src_sessions AS (
-    SELECT * 
-    FROM {{ source('workout_data', 'sessions_raw') }}
-    ),
+with
+    src_sessions as (select * from {{ source("workout_data", "sessions_raw") }}),
 
-renamed_casted AS (
-    SELECT
-        trim(session_id) as session_name_key,
-        md5(trim(session_id)) as session_goal_id,
-        session_goal as session_goal_name
-        --_fivetran_deleted AS _fivetran_deleted,
-        --convert_timezone('UTC',_fivetran_synced) as utc_time
-    FROM src_sessions
-)    
-SELECT * FROM renamed_casted
+    prepared_session_goal as (
+        select
+            {{ dbt_utils.generate_surrogate_key(["session_id"]) }} as session_sk,
+            nullif(trim(session_id), '') as session_id,
+            case
+                when lower(nullif(trim(session_goal), '')) = 'strength'
+                then 'strength'
+                when lower(nullif(trim(session_goal), '')) = 'hypertrophy'
+                then 'hypertrophy'
+                when lower(nullif(trim(session_goal), '')) = 'endurance'
+                then 'endurance'
+                when lower(nullif(trim(session_goal), '')) = 'recovery'
+                then 'recovery'
+                else null
+            end as session_goal
+        -- _fivetran_deleted AS _fivetran_deleted,
+        -- convert_timezone('UTC',_fivetran_synced) as utc_time
+        from src_sessions
+    )
+select *
+from prepared_session_goal

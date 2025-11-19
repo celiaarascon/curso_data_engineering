@@ -1,20 +1,22 @@
-{{
-  config(
-    materialized='view'
-  )
-}}
+{{ config(materialized="view") }}
 
-WITH src_sessions AS (
-    SELECT * 
-    FROM {{ source('workout_data', 'exercises_raw') }}
-    ),
+with
+    src_exercises as (select * from {{ source("workout_data", "exercises_raw") }}),
 
-renamed_casted AS (
-    SELECT
-        md5(movement_type) as movement_type_id,
-        movement_type as movement_type_name
-        --_fivetran_deleted AS _fivetran_deleted,
-        --convert_timezone('UTC',_fivetran_synced) as utc_time
-    FROM src_sessions
-)    
-SELECT * FROM renamed_casted
+    prepared_movement_type as (
+        select
+            {{ dbt_utils.generate_surrogate_key(["exercise_id"]) }} as exercise_sk,
+            nullif(trim(exercise_id), '') as exercise_id,
+            case
+                when lower(nullif(trim(movement_type), '')) = 'compound'
+                then 'compound'
+                when lower(nullif(trim(movement_type), '')) = 'isolation'
+                then 'isolation'
+                else null
+            end as movement_type
+        -- _fivetran_deleted AS _fivetran_deleted,
+        -- convert_timezone('UTC',_fivetran_synced) as utc_time
+        from src_exercises
+    )
+select *
+from prepared_movement_type

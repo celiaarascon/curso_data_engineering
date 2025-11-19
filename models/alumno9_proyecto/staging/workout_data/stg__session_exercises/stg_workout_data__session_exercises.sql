@@ -1,29 +1,25 @@
-{{
-  config(
-    materialized='view'
-  )
-}}
+{{ config(materialized="view") }}
 
-WITH src_sessions AS (
-    SELECT * 
-    FROM {{ source('workout_data', 'session_exercises_raw') }}
+with
+    src_session_exercises as (
+        select * from {{ source("workout_data", "session_exercises_raw") }}
     ),
 
-renamed_casted AS (
-    SELECT
-        trim(entry_id) as entry_name_key,
-        md5(trim(entry_id)) as entry_id,
-        TRY_CAST(sets AS INTEGER) as sets,
-        TRY_CAST(reps AS INTEGER) as reps,
-        TRY_CAST(weight_kg AS FLOAT) as weight_kg,
-        (TRY_CAST(sets AS INTEGER) * TRY_CAST(reps AS INTEGER) * TRY_CAST(weight_kg AS FLOAT)) AS volume_kg,       
-        TRY_CAST(estimated_1rm AS FLOAT) as estimated_1rm
-        --_fivetran_deleted AS _fivetran_deleted,
-        --convert_timezone('UTC',_fivetran_synced) as utc_time
-    FROM src_sessions
-    WHERE 
-        sets IS NOT NULL 
-        AND reps IS NOT NULL 
-        AND weight_kg IS NOT NULL
-)
-SELECT * FROM renamed_casted
+    prepared_session_exercise as (
+        select
+            {{ dbt_utils.generate_surrogate_key(["entry_id"]) }} as session_exercise_sk,
+            nullif(trim(entry_id), '') as entry_id,
+            cast(sets as integer) as sets_count,
+            cast(reps as integer) as reps_count,
+            cast(weight_kg as decimal(8, 2)) as weight_kg,
+            cast(sets as integer)
+            * cast(reps as integer)
+            * cast(weight_kg as decimal(8, 2)) as total_volume_kg,
+            cast(estimated_1rm as decimal(8, 2)) as estimated_one_rep_max,
+        -- _fivetran_deleted AS _fivetran_deleted,
+        -- convert_timezone('UTC',_fivetran_synced) as utc_time
+        from src_session_exercises
+        where sets is not null and reps is not null and weight_kg is not null
+    )
+select *
+from prepared_session_exercise

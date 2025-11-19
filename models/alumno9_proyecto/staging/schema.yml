@@ -6,28 +6,28 @@ models:
         enforced: true
     columns:
       - name: exercise_id
-        data_type: text
+        data_type: varchar
         description: "Unique identifier for each exercise."
         constraints:
           - type: not_null
       - name: exercise_name
-        data_type: text
+        data_type: varchar
         description: "Name of the exercise"
         constraints:
           - type: not_null
       - name: primary_muscle
-        data_type: text
+        data_type: varchar
         description: "Main muscle group"
         constraints:
           - type: not_null
       - name: secondary_muscle
-        data_type: text
+        data_type: varchar
         description: "Additional muscle group"
       - name: movement_type
-        data_type: text
+        data_type: varchar
         description: "Type of movement performed"
       - name: equipment
-        data_type: text
+        data_type: varchar
         description: "Equipment required"
 
   - name: stg_workout_data__session_exercises
@@ -72,29 +72,73 @@ models:
     description: "Staging: users"
     config:
       contract:
-        enforced: true
+        enforced: false
     columns:
+      - name: user_sk
+        data_type: text
+        description: "Surrogate key for user"
+        constraints:
+        - type: not_null
       - name: user_id
         data_type: text
         description: "Unique user id"
         constraints:
-          - type: not_null
+        - type: not_null
       - name: first_name
         data_type: text
         description: "User first name"
       - name: last_name
         data_type: text
         description: "User last name"
-      - name: age
-        data_type: integer
-        description: "User age"
-      - name: sex
+      - name: fk_age_id
         data_type: text
-        description: "Sex: M/F"
-      - name: experience_level
+        description: "Foreign key to age dimension"
+      - name: fk_sex_id
         data_type: text
-        description: "beginner/intermediate/advanced"
+        description: "Foreign key to sex dimension"
+      - name: fk_experience_level_id
+        data_type: text
+        description: "Foreign key to experience level dimension"
+  
+  - name: stg_workout_data__users_age
+    description: "Staging: age groups dimension"
+    columns:
+    - name: age_id
+      data_type: text
+      description: "Surrogate key for age group"
+    - name: age_group
+      data_type: text
+      description: "Age group category"
+    - name: age_group_description
+      data_type: text
+      description: "Age group description"
+  
+  - name: stg_workout_data__users_sex
+    description: "Staging: sex dimension"
+    columns:
+    - name: sex_id
+      data_type: text
+      description: "Surrogate key for sex"
+    - name: sex
+      data_type: text
+      description: "Sex code: M/F"
+    - name: sex_description
+      data_type: text
+      description: "Sex description"
 
+  - name: stg_workout_data__users_experience_level
+    description: "Staging: experience level dimension"
+    columns:
+    - name: experience_level_id
+      data_type: text
+      description: "Surrogate key for experience level"
+    - name: experience_level
+      data_type: text
+      description: "Experience level code"
+    - name: experience_level_description
+      data_type: text
+      description: "Experience level description"
+  
   - name: stg_workout_data__sessions
     description: "Staging: sessions"
     config:
