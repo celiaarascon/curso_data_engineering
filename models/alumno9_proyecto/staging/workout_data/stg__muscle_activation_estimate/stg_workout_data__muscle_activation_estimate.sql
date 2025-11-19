@@ -10,7 +10,7 @@ with
             {{ dbt_utils.generate_surrogate_key(["id"]) }} as muscle_activation_sk,
             nullif(trim(id), '') as muscle_activation_id,
             nullif(trim(exercise_id), '') as exercise_id,
-            initcap(nullif(trim(muscle), '')) as muscle_name,
+            {{ dbt_utils.generate_surrogate_key(["muscle"]) }} as fk_muscle_sk,
             cast(activation_score as decimal(3, 2)) as activation_score
         -- _fivetran_deleted AS _fivetran_deleted,
         -- convert_timezone('UTC',_fivetran_synced) as utc_time

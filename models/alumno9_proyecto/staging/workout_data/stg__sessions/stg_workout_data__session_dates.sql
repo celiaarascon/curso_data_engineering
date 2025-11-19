@@ -1,19 +1,24 @@
-{{ config(materialized="view") }}
+{{
+    config(
+        materialized="view",
+        database="ALUMNO9_PROYECTO_SILVER",
+        schema="staging_workout_data",
+    )
+}}
 
 with
     src_sessions as (select * from {{ source("workout_data", "sessions_raw") }}),
 
     prepared_date as (
         select
-            {{ dbt_utils.generate_surrogate_key(["session_id"]) }} as session_sk,
-            nullif(trim(session_id), '') as session_id,
+            {{ dbt_utils.generate_surrogate_key(["session_date"]) }}
+            as fk_session_date_id,
             cast(session_date as date) as session_date,
-        -- EXTRACT(YEAR FROM CAST(session_date AS DATE)) AS session_year,
-        -- EXTRACT(MONTH FROM CAST(session_date AS DATE)) AS session_month,
-        -- EXTRACT(DAY FROM CAST(session_date AS DATE)) AS session_day
-        -- _fivetran_deleted AS _fivetran_deleted,
-        -- convert_timezone('UTC',_fivetran_synced) as utc_time
+            extract(year from cast(session_date as date)) as session_year,
+            extract(month from cast(session_date as date)) as session_month,
+            extract(day from cast(session_date as date)) as session_day
         from src_sessions
     )
+
 select *
 from prepared_date

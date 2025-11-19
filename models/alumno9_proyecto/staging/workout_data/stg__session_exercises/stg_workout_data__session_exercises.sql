@@ -1,25 +1,36 @@
-{{ config(materialized="view") }}
+{{
+    config(
+        materialized="view",
+        database="ALUMNO9_PROYECTO_SILVER",
+        schema="staging_workout_data",
+    )
+}}
 
 with
     src_session_exercises as (
         select * from {{ source("workout_data", "session_exercises_raw") }}
     ),
 
-    prepared_session_exercise as (
+    cleaned_session_exercises as (
         select
-            {{ dbt_utils.generate_surrogate_key(["entry_id"]) }} as session_exercise_sk,
+            {{ dbt_utils.generate_surrogate_key(["entry_id"]) }} as entry_sk,
             nullif(trim(entry_id), '') as entry_id,
-            cast(sets as integer) as sets_count,
-            cast(reps as integer) as reps_count,
+            nullif(trim(session_id), '') as session_id,
+            nullif(trim(exercise_id), '') as exercise_id,
+            cast(sets as integer) as sets,
+            cast(reps as integer) as reps,
             cast(weight_kg as decimal(8, 2)) as weight_kg,
             cast(sets as integer)
             * cast(reps as integer)
-            * cast(weight_kg as decimal(8, 2)) as total_volume_kg,
-            cast(estimated_1rm as decimal(8, 2)) as estimated_one_rep_max,
-        -- _fivetran_deleted AS _fivetran_deleted,
-        -- convert_timezone('UTC',_fivetran_synced) as utc_time
+            * cast(weight_kg as decimal(8, 2)) as volume_kg,
+            cast(estimated_1rm as decimal(8, 2)) as estimated_1_rep_max,
         from src_session_exercises
-        where sets is not null and reps is not null and weight_kg is not null
+        where
+            sets is not null
+            and reps is not null
+            and weight_kg is not null
+            and estimated_1rm is not null
     )
+
 select *
-from prepared_session_exercise
+from cleaned_session_exercises

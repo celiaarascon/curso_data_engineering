@@ -31,41 +31,47 @@ models:
         description: "Equipment required"
 
   - name: stg_workout_data__session_exercises
-    description: "Staging: session exercises - contrato (enforced)."
+    description: "Staging: cleaned session exercises with calculated volume and foreign keys"
     config:
       contract:
-        enforced: true
+        enforced: false
     columns:
-      - name: entry_id
-        data_type: text
-        description: "Unique entry id"
-        constraints:
-          - type: not_null
-      - name: session_id
-        data_type: text
-        description: "Reference session id"
-        constraints:
-          - type: not_null
-      - name: exercise_id
-        data_type: text
-        description: "Reference exercise id"
-        constraints:
-          - type: not_null
-      - name: sets
-        data_type: integer
-        description: "Number of sets"
-      - name: reps
-        data_type: integer
-        description: "Number of repetitions"
-      - name: weight_kg
-        data_type: float
-        description: "Weight used (kg)"
-      - name: volume_kg
-        data_type: float
-        description: "Total training volume"
-      - name: estimated_1rm
-        data_type: float
-        description: "Estimated 1RM (kg)"
+    - name: entry_sk
+      data_type: text
+      description: "Surrogate key for session exercise"
+      constraints:
+        - type: not_null
+        - type: unique
+    - name: entry_id
+      data_type: text
+      description: "Unique entry id"
+      constraints:
+        - type: not_null
+    - name: session_id
+      data_type: text
+      description: "Session id"
+      constraints:
+        - type: not_null
+    - name: exercise_id
+      data_type: text
+      description: "Exercise id"
+      constraints:
+        - type: not_null
+    - name: sets
+      data_type: integer
+      description: "Number of sets"
+    - name: reps
+      data_type: integer
+      description: "Number of reps"
+    - name: weight_kg
+      data_type: decimal(8,2)
+      description: "Weight in kg"
+    - name: volume_kg
+      data_type: decimal(8,2)
+      description: "Total volume calculated (sets * reps * weight)"
+    - name: estimated_1_rep_max
+      data_type: decimal(8,2)
+      description: "Estimated one rep maximum"
 
 
   - name: stg_workout_data__users
@@ -143,32 +149,102 @@ models:
     description: "Staging: sessions"
     config:
       contract:
+        enforced: false
+    columns:
+    - name: session_sk
+      data_type: text
+      description: "Surrogate key for session"
+      constraints:
+        - type: not_null
+        - type: unique
+    - name: session_id
+      data_type: text
+      description: "Unique session id"
+      constraints:
+        - type: not_null
+    - name: user_id
+      data_type: text
+      description: "User who did the session"
+      constraints:
+        - type: not_null
+    - name: duration_minutes
+      data_type: integer
+      description: "Duration in minutes"
+    - name: fk_session_goal_id
+      data_type: text
+      description: "Foreign key to session goals dimension"
+    - name: fk_subjective_effort_id
+      data_type: text
+      description: "Foreign key to subjective effort dimension"
+    - name: fk_session_date_id
+      data_type: text
+      description: "Foreign key to session dates dimension"
+
+  - name: stg_workout_data__session_subjective_effort
+    description: "Staging: subjective effort dimension with categories"
+    config:
+      contract:
         enforced: true
     columns:
-      - name: session_id
-        data_type: text
-        description: "Unique session id"
-        constraints:
-          - type: not_null
-      - name: user_id
-        data_type: text
-        description: "User who did the session"
-        constraints:
-          - type: not_null
-      - name: session_date
-        data_type: text
-        description: "Date of session (ISO format)"
-        tests:
-          - not_null
-      - name: session_goal
-        data_type: text
-        description: "Goal of session"
-      - name: duration_min
-        data_type: integer
-        description: "Duration in minutes"
-      - name: subjective_effort
-        data_type: integer
-        description: "User's subjective effort"
+    - name: subjective_effort_id
+      data_type: text
+      description: "Surrogate key for subjective effort"
+      constraints:
+        - type: not_null
+        - type: unique
+    - name: subjective_effort
+      data_type: integer
+      description: "Numeric subjective effort value"
+      constraints:
+        - type: not_null
+    - name: subjective_effort_description
+      data_type: text
+      description: "Effort category (Low: 1-6, Medium: 7-8, High: 9-10)"
+
+  - name: stg_workout_data__session_goals
+    description: "Staging: distinct session goals dimension"
+    config:
+      contract:
+        enforced: true
+    columns:
+    - name: fk_session_goal_id
+      data_type: text
+      description: "Surrogate key for session goal"
+      constraints:
+        - type: not_null
+        - type: unique
+    - name: session_goal
+      data_type: text
+      description: "Formatted session goal description"
+      constraints:
+        - type: not_null
+
+  - name: stg_workout_data__session_dates
+    description: "Staging: session dates with extracted components"
+    config:
+      contract:
+        enforced: true
+    columns:
+    - name: fk_session_date_id
+      data_type: text
+      description: "Surrogate key for session date"
+      constraints:
+        - type: not_null
+        - type: unique
+    - name: session_date
+      data_type: date
+      description: "Date of session"
+      constraints:
+        - type: not_null
+    - name: session_year
+      data_type: integer
+      description: "Year of session"
+    - name: session_month
+      data_type: integer
+      description: "Month of session"
+    - name: session_day
+      data_type: integer
+      description: "Day of session"
 
   - name: stg_workout_data__muscule_activation_estimate
     description: "Staging: muscle activation estimates"

@@ -1,12 +1,16 @@
-{{ config(materialized="view") }}
+{{
+    config(
+        materialized="view",
+        database="ALUMNO9_PROYECTO_SILVER",
+        schema="staging_workout_data",
+    )
+}}
 
 with
     src_sessions as (select * from {{ source("workout_data", "sessions_raw") }}),
 
-    prepared_session_goal as (
-        select
-            {{ dbt_utils.generate_surrogate_key(["session_id"]) }} as session_sk,
-            nullif(trim(session_id), '') as session_id,
+    distinct_session_goals as (
+        select distinct
             case
                 when lower(nullif(trim(session_goal), '')) = 'strength'
                 then 'strength'
@@ -16,11 +20,19 @@ with
                 then 'endurance'
                 when lower(nullif(trim(session_goal), '')) = 'recovery'
                 then 'recovery'
-                else null
+                else 'unknown'
             end as session_goal
-        -- _fivetran_deleted AS _fivetran_deleted,
-        -- convert_timezone('UTC',_fivetran_synced) as utc_time
         from src_sessions
+        where session_goal is not null
+    ),
+
+    prepared_session_goals as (
+        select
+            {{ dbt_utils.generate_surrogate_key(["session_goal"]) }}
+            as fk_session_goal_id,
+            initcap(session_goal) as session_goal
+        from distinct_session_goals
     )
+
 select *
-from prepared_session_goal
+from prepared_session_goals
