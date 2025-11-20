@@ -1,8 +1,7 @@
 {{
     config(
         materialized="view",
-        database="ALUMNO9_PROYECTO_SILVER",
-        schema="staging_workout_data",
+        database="ALUMNO9_PROYECTO_SILVER"
     )
 }}
 
@@ -10,14 +9,12 @@ with
     src_sessions as (select * from {{ source("workout_data", "sessions_raw") }}),
 
     prepared_date as (
-        select
+        select distinct
             {{ dbt_utils.generate_surrogate_key(["session_date"]) }}
             as fk_session_date_id,
-            cast(session_date as date) as session_date,
-            extract(year from cast(session_date as date)) as session_year,
-            extract(month from cast(session_date as date)) as session_month,
-            extract(day from cast(session_date as date)) as session_day
+            cast(session_date as date) as session_date
         from src_sessions
+        order by session_date asc
     )
 
 select *

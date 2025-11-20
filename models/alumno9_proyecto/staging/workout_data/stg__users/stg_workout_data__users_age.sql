@@ -1,4 +1,9 @@
-{{ config(materialized="view", database="ALUMNO9_PROYECTO_SILVER", schema="staging_workout_data") }}
+{{
+    config(
+        materialized="view",
+        database="ALUMNO9_PROYECTO_SILVER"
+    )
+}}
 
 with
     src_users as (select * from {{ source("workout_data", "users_raw") }}),
@@ -24,13 +29,13 @@ with
             age_group,
             case
                 when age_group = '18-24'
-                then 'Young adults (18-24)'
+                then 'Young adults'
                 when age_group = '25-34'
-                then 'Adults (25-34)'
+                then 'Adults'
                 when age_group = '35-44'
-                then 'Middle-aged adults (35-44)'
+                then 'Middle-aged adults'
                 when age_group = '45+'
-                then 'Senior adults (45+)'
+                then 'Senior adults'
                 else 'Unknown'
             end as age_group_description
         from distinct_age_groups

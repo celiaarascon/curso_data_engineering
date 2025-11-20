@@ -1,10 +1,4 @@
-{{
-    config(
-        materialized="view",
-        database="ALUMNO9_PROYECTO_SILVER",
-        schema="staging_workout_data",
-    )
-}}
+{{ config(materialized="view", database="ALUMNO9_PROYECTO_SILVER") }}
 
 with
     src_session_exercises as (
@@ -17,13 +11,13 @@ with
             nullif(trim(entry_id), '') as entry_id,
             nullif(trim(session_id), '') as session_id,
             nullif(trim(exercise_id), '') as exercise_id,
-            cast(sets as integer) as sets,
-            cast(reps as integer) as reps,
-            cast(weight_kg as decimal(8, 2)) as weight_kg,
-            cast(sets as integer)
-            * cast(reps as integer)
-            * cast(weight_kg as decimal(8, 2)) as volume_kg,
-            cast(estimated_1rm as decimal(8, 2)) as estimated_1_rep_max,
+            try_cast(sets as integer) as sets,
+            try_cast(reps as integer) as reps,
+            try_cast(weight_kg as decimal(8, 2)) as weight_kg,
+            try_cast(sets as integer)
+            * try_cast(reps as integer)
+            * try_cast(weight_kg as decimal(8, 2)) as volume_kg,
+            try_cast(estimated_1rm as decimal(8, 2)) as estimated_1_rep_max
         from src_session_exercises
         where
             sets is not null

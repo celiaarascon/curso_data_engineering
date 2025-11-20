@@ -1,8 +1,7 @@
 {{
     config(
         materialized="view",
-        database="ALUMNO9_PROYECTO_SILVER",
-        schema="staging_workout_data",
+        database="ALUMNO9_PROYECTO_SILVER"
     )
 }}
 
@@ -14,7 +13,7 @@ with
             {{ dbt_utils.generate_surrogate_key(["session_id"]) }} as session_sk,
             nullif(trim(session_id), '') as session_id,
             nullif(trim(user_id), '') as user_id,
-            cast(duration_min as integer) as duration_minutes,
+            try_cast(duration_min as integer) as duration_minutes,
             {{ dbt_utils.generate_surrogate_key(["session_goal"]) }}
             as fk_session_goal_id,
             {{ dbt_utils.generate_surrogate_key(["subjective_effort"]) }}

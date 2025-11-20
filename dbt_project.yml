@@ -40,11 +40,11 @@ models:
     staging:
       +materialized: view
       +database: alumno9_proyecto_silver
-      +schema: STAGING_WORKOUT_DATA  
+      +schema: workout_data  
     marts:
       +materialized: table
       +database: alumno9_proyecto_silver
-      +schema: marts_workout_data
+      +schema: workout_data
     
 snapshots:
     alumno9_proyecto:

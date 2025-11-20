@@ -1,8 +1,7 @@
 {{
     config(
         materialized="view",
-        database="ALUMNO9_PROYECTO_SILVER",
-        schema="staging_workout_data",
+        database="ALUMNO9_PROYECTO_SILVER"
     )
 }}
 
@@ -10,7 +9,7 @@ with
     src_sessions as (select * from {{ source("workout_data", "sessions_raw") }}),
 
     distinct_subjective_effort as (
-        select distinct cast(subjective_effort as integer) as subjective_effort
+        select distinct try_cast(subjective_effort as integer) as subjective_effort
         from src_sessions
         where subjective_effort is not null
     ),

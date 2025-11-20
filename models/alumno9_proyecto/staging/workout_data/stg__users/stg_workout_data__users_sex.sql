@@ -1,4 +1,9 @@
-{{ config(materialized="view", database="ALUMNO9_PROYECTO_SILVER", schema="staging_workout_data") }}
+{{
+    config(
+        materialized="view",
+        database="ALUMNO9_PROYECTO_SILVER"
+    )
+}}
 
 with
     src_users as (select * from {{ source("workout_data", "users_raw") }}),

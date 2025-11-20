@@ -1,8 +1,7 @@
 {{
     config(
         materialized="view",
-        database="ALUMNO9_PROYECTO_SILVER",
-        schema="staging_workout_data",
+        database="ALUMNO9_PROYECTO_SILVER"
     )
 }}
 
@@ -29,7 +28,7 @@ with
     prepared_equipment as (
         select
             {{ dbt_utils.generate_surrogate_key(["equipment"]) }} as equipment_id,
-            equipment_name,
+            initcap(equipment) as equipment_name,
         from distinct_equipment
     )
 

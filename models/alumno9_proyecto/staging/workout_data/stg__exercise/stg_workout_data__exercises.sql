@@ -1,8 +1,7 @@
 {{
     config(
         materialized="view",
-        database="ALUMNO9_PROYECTO_SILVER",
-        schema="staging_workout_data"
+        database="ALUMNO9_PROYECTO_SILVER"
     )
 }}
 

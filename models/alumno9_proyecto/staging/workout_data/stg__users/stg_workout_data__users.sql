@@ -3,8 +3,7 @@
         materialized="incremental",
         unique_key="user_sk",
         database="ALUMNO9_PROYECTO_SILVER",
-        schema="staging_workout_data",
-        on_schema_change= "sync_all_columns"
+        on_schema_change="sync_all_columns",
     )
 }}
 
@@ -33,7 +32,7 @@ with
             {{ dbt_utils.generate_surrogate_key(["experience_level"]) }}
             as fk_experience_level_id,
             _fivetran_synced
-            
+
         from src_users
     )
 
