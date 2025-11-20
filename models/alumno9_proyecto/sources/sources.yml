@@ -141,3 +141,4 @@ sources:
               - accepted_values:
                   arguments:
                     values: ['intermediate', 'advanced', 'beginner']
+          - name: _fivetran_synced

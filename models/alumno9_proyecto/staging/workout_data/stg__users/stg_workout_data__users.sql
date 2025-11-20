@@ -1,4 +1,12 @@
-{{ config(materialized="view", database="ALUMNO9_PROYECTO_SILVER", schema="staging_workout_data") }}
+{{
+    config(
+        materialized="incremental",
+        unique_key="user_sk",
+        database="ALUMNO9_PROYECTO_SILVER",
+        schema="staging_workout_data",
+        on_schema_change= "sync_all_columns"
+    )
+}}
 
 with
     src_users as (select * from {{ source("workout_data", "users_raw") }}),
@@ -23,9 +31,21 @@ with
             }} as fk_age_id,
             {{ dbt_utils.generate_surrogate_key(["sex"]) }} as fk_sex_id,
             {{ dbt_utils.generate_surrogate_key(["experience_level"]) }}
-            as fk_experience_level_id
+            as fk_experience_level_id,
+            _fivetran_synced
+            
         from src_users
     )
 
 select *
 from cleaned_users
+
+{% if is_incremental() %}
+
+    where
+        _fivetran_synced > (
+            select coalesce(max(_fivetran_synced), cast('1900-01-01' as timestamp))
+            from {{ this }}
+        )
+
+{% endif %}

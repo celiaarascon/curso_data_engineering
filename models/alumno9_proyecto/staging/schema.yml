@@ -105,6 +105,10 @@ models:
       - name: fk_experience_level_id
         data_type: text
         description: "Foreign key to experience level dimension"
+      - name: _fivetran_synced
+        description: "Timestamp de sincronización desde la capa bronze/ingest"
+        tests:
+          - not_null
   
   - name: stg_workout_data__users_age
     description: "Staging: age groups dimension"
