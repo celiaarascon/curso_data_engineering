@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: fact_exerciseperformance
+    description: "Main exercise performance fact table - metrics for sets, reps, weight and volume"
+    columns:
+      - name: entry_id
+        description: "Unique performance record identifier"
+        tests:
+          - unique
+          - not_null
+      - name: fk_user_id
+        description: "Foreign key to user"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_user')
+              field: user_id
+      - name: fk_exercise_id
+        description: "Foreign key to exercise"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_exercise')
+              field: exercise_id
+      - name: fk_session_id
+        description: "Foreign key to session"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_session')
+              field: session_id
+      - name: fk_date_id
+        description: "Foreign key to date (session_date_id)"
+        tests:
+          - not_null
+      - name: sets
+        description: "Number of sets performed"
+      - name: reps
+        description: "Number of repetitions per set"
+      - name: weight_kg
+        description: "Weight lifted in kilograms"
+      - name: volumen_kg
+        description: "Total volume calculated (sets * reps * weight_kg)"
+      - name: estimated_1rm
+        description: "Estimated one repetition maximum"
+      - name: duration_min
+        description: "Exercise duration in minutes"
+      - name: subjective_effort
+        description: "Perceived effort during exercise (1-10)"

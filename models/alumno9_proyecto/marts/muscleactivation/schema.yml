@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: fact_muscleactivation
+    description: "Muscle activation fact table - estimated muscle activation by exercise and muscle group"
+    columns:
+      - name: muscle_activation_estimate_sk
+        description: "Unique surrogate key for muscle activation record"
+        tests:
+          - unique
+          - not_null
+      - name: fk_entry_id
+        description: "Reference to performance record in fact_exerciseperformance"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('fact_exerciseperformance')
+              field: entry_id
+      - name: fk_user_id
+        description: "Foreign key to user"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_user')
+              field: user_id
+      - name: fk_exercise_id
+        description: "Foreign key to exercise"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_exercise')
+              field: exercise_id
+      - name: fk_muscle_id
+        description: "Foreign key to muscle group"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_musclegroup')
+              field: muscle_id
+      - name: fk_session_id
+        description: "Foreign key to session"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_session')
+              field: session_id
+      - name: fk_date_id
+        description: "Foreign key to date (session_date_id)"
+        tests:
+          - not_null
+      - name: activation_score
+        description: "Estimated muscle activation score (0-1)"

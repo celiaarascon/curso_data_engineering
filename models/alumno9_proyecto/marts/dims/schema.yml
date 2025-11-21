@@ -1,0 +1,102 @@
+models:
+  - name: dim_users
+    description: "User dimension with demographic and experience information"
+    columns:
+      - name: user_id
+        description: "Unique user identifier"
+        tests:
+          - unique
+          - not_null
+      - name: first_name
+        description: "User's first name"
+      - name: last_name
+        description: "User's last name"
+      - name: age_id
+        description: "User's age group (18-24, 25-34, 35-44, 45+)"
+      - name: sex_id
+        description: "User's gender (M, F)"
+      - name: experience_level_id
+        description: "User's experience level (Beginner, Intermediate, Advanced)"
+
+  - name: dim_session
+    description: "Training session dimension with goal and perceived effort information"
+    columns:
+      - name: session_id
+        description: "Unique session identifier"
+        tests:
+          - unique
+          - not_null
+      - name: user_id
+        description: "User who performed the session (FK to dim_user)"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_user')
+              field: user_id
+      - name: session_goal
+        description: "Session objective (Strength, Hypertrophy, Endurance, Recovery)"
+      - name: duration_min
+        description: "Session duration in minutes"
+      - name: subjective_effort
+        description: "Perceived effort numerical value (1-10)"
+      - name: date_id
+        description: "Date reference (FK to dim_date)"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_id
+
+  - name: dim_exercise
+    description: "Exercise dimension with technical information and muscle groups"
+    columns:
+      - name: exercise_id
+        description: "Unique exercise identifier"
+        tests:
+          - unique
+          - not_null
+      - name: exercise_name
+        description: "Exercise name"
+      - name: primary_muscle
+        description: "Primary target muscle group"
+      - name: secondary_muscle
+        description: "Secondary involved muscle group"
+      - name: movement_type
+        description: "Movement type (Compound, Isolation)"
+      - name: equipment
+        description: "Required equipment"
+
+  - name: dim_musclegroup
+    description: "Muscle groups dimension"
+    columns:
+      - name: muscle_id
+        description: "Unique muscle group identifier"
+        tests:
+          - unique
+          - not_null
+      - name: muscle_name
+        description: "Muscle group name"
+        tests:
+          - not_null
+
+  - name: dim_date
+    description: "Date dimension for temporal analysis"
+    columns:
+      - name: date_id
+        description: "Unique date identifier in YYYYMMDD format"
+        tests:
+          - unique
+          - not_null
+      - name: calendar_day
+        description: "Complete date"
+        tests:
+          - not_null
+      - name: day
+        description: "Day of the month (1-31)"
+      - name: month
+        description: "Month of the year (1-12)"
+      - name: year
+        description: "Year (e.g., 2024)"
+      - name: week
+        description: "Week of the year (1-53)"
+     
