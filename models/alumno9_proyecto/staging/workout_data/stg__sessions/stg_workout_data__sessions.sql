@@ -10,7 +10,6 @@ with
 
     cleaned_sessions as (
         select
-            {{ dbt_utils.generate_surrogate_key(["session_id"]) }} as session_sk,
             nullif(trim(session_id), '') as session_id,
             nullif(trim(user_id), '') as user_id,
             try_cast(duration_min as integer) as duration_minutes,

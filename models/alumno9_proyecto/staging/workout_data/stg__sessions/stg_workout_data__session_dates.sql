@@ -11,7 +11,7 @@ with
     prepared_date as (
         select distinct
             {{ dbt_utils.generate_surrogate_key(["session_date"]) }}
-            as fk_session_date_id,
+            as session_date_id,
             cast(session_date as date) as session_date
         from src_sessions
         order by session_date asc

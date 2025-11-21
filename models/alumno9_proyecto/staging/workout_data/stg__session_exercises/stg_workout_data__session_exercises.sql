@@ -7,7 +7,6 @@ with
 
     cleaned_session_exercises as (
         select
-            {{ dbt_utils.generate_surrogate_key(["entry_id"]) }} as entry_sk,
             nullif(trim(entry_id), '') as entry_id,
             nullif(trim(session_id), '') as session_id,
             nullif(trim(exercise_id), '') as exercise_id,

@@ -1,6 +1,6 @@
--- tests/volume_calculation_validation.sql (versión temporal para debugging)
-{{ config(severity = 'warn') }}
+{{ config(severity = 'error') }}
 
+--Test singular para comprobar que volume_kg esta bien calculado
 WITH volume_calculation AS (
     SELECT 
         entry_id,
@@ -16,7 +16,7 @@ WITH volume_calculation AS (
         TRY_CAST(volume_kg AS FLOAT) as volume_kg_float,
         TRY_CAST(sets AS FLOAT) * TRY_CAST(reps AS FLOAT) * TRY_CAST(weight_kg AS FLOAT) as calculated_volume,
         ABS(TRY_CAST(volume_kg AS FLOAT) - (TRY_CAST(sets AS FLOAT) * TRY_CAST(reps AS FLOAT) * TRY_CAST(weight_kg AS FLOAT))) as difference
-    FROM {{ source('workout_data', 'session_exercises_raw') }}
+    FROM {{ source('workout_data', 'stg_workout_data__session_exercises') }}
     WHERE 
         sets IS NOT NULL 
         AND reps IS NOT NULL 
@@ -40,4 +40,4 @@ SELECT
     difference
 FROM volume_calculation
 WHERE difference > 0.01
-LIMIT 10  -- Solo ver 10 ejemplos
+LIMIT 10  

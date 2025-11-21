@@ -19,7 +19,7 @@ with
 
     cleaned_muscle as (
         select
-            {{ dbt_utils.generate_surrogate_key(["muscle_name"]) }} as muscle_sk,
+            {{ dbt_utils.generate_surrogate_key(["muscle_name"]) }} as muscle_id,
             muscle_name
         from distinct_muscles
     )

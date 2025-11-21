@@ -1,7 +1,7 @@
 {{
     config(
         materialized="incremental",
-        unique_key="user_sk",
+        unique_key="user_id",
         database="ALUMNO9_PROYECTO_SILVER",
         on_schema_change="sync_all_columns",
     )
@@ -12,7 +12,6 @@ with
 
     cleaned_users as (
         select
-            {{ dbt_utils.generate_surrogate_key(["user_id"]) }} as user_sk,
             nullif(trim(user_id), '') as user_id,
             initcap(nullif(trim(first_name), '')) as first_name,
             initcap(nullif(trim(last_name), '')) as last_name,

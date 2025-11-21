@@ -1,4 +1,3 @@
--- tests/activation_data_validation.sql
 {{ config(severity = 'error') }}
 
 -- Test para verificar que existe activación y no es nula

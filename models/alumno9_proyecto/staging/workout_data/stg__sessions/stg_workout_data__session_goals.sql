@@ -28,7 +28,7 @@ with
     prepared_session_goals as (
         select
             {{ dbt_utils.generate_surrogate_key(["session_goal"]) }}
-            as fk_session_goal_id,
+            as session_goal_id,
             initcap(session_goal) as session_goal
         from distinct_session_goals
     )

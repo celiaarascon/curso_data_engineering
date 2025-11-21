@@ -25,7 +25,7 @@ with
 
     prepared_age as (
         select
-            {{ dbt_utils.generate_surrogate_key(["age_group"]) }} as fk_age_id,
+            {{ dbt_utils.generate_surrogate_key(["age_group"]) }} as age_id,
             age_group,
             case
                 when age_group = '18-24'

@@ -55,4 +55,3 @@ snapshots:
 tests:
   alumno9_proyecto:
     +schema: workout_data
-
