@@ -1,52 +1,84 @@
-{{
+{{ 
     config(
-        materialized='incremental',
-        unique_key='muscle_activation_estimate_sk'
+        materialized='table'
     )
 }}
 
 WITH muscle_activation_base AS (
     SELECT
-        ma.muscle_activation_sk AS muscle_activation_estimate_sk,
         ma.exercise_id,
         ma.fk_muscle_id,
         ma.activation_score,
-        se.entry_id AS fk_entry_id,
-        se.session_id,
-        s.user_id,
-        s.fk_session_date_id
+        fep.entry_id AS fk_entry_id,  
+        du.user_id,
+        ds.date_id AS fk_session_date_id
     FROM {{ ref('stg_workout_data__muscle_activation_estimate') }} ma
-    INNER JOIN {{ ref('stg_workout_data__session_exercises') }} se 
-        ON ma.exercise_id = se.exercise_id
-    INNER JOIN {{ ref('stg_workout_data__sessions') }} s 
-        ON se.session_id = s.session_id
+    LEFT JOIN {{ ref('dim_exercise') }} de
+        ON ma.exercise_id = de.exercise_id
+    LEFT JOIN {{ ref('fact_exercise_performance') }} fep
+        ON de.exercise_id = fep.exercise_id
+    LEFT JOIN {{ ref('dim_users') }} du
+        ON fep.user_id = du.user_id
+    LEFT JOIN {{ ref('dim_session') }} ds
+        ON fep.session_id = ds.session_id
+
+    WHERE 
+        fep.entry_id IS NOT NULL
+        AND du.user_id IS NOT NULL
+        AND ma.exercise_id IS NOT NULL
+        AND ma.fk_muscle_id IS NOT NULL
+        AND ds.session_id IS NOT NULL
+        AND ds.date_id IS NOT NULL
 ),
 
-final AS (
+activation_stats AS (
     SELECT
-        mab.muscle_activation_estimate_sk,
-        mab.fk_entry_id,
-        mab.user_id AS fk_user_id,
-        mab.exercise_id AS fk_exercise_id,
-        mab.fk_muscle_id,
-        mab.session_id AS fk_session_id,
-        mab.fk_session_date_id AS fk_date_id, 
-        mab.activation_score
-    FROM muscle_activation_base mab
-    WHERE 
-        mab.fk_entry_id IS NOT NULL
-        AND mab.user_id IS NOT NULL
-        AND mab.exercise_id IS NOT NULL
-        AND mab.fk_muscle_id IS NOT NULL
-        AND mab.session_id IS NOT NULL
-        AND mab.fk_session_date_id IS NOT NULL
+        fk_muscle_id,
+        exercise_id AS fk_exercise_id,
+        ROUND(AVG(activation_score), 3) as avg_activation,
+        COUNT(*) as total_measures,
+        COUNT(DISTINCT user_id) as unique_users,
+        ROUND(
+            COUNT(CASE WHEN activation_score >= 0.7 THEN 1 END) * 100.0 /
+            NULLIF(COUNT(*), 0), 
+        1) as percentage_activation
+    FROM muscle_activation_base
+    GROUP BY fk_muscle_id, exercise_id
+    HAVING COUNT(*) >= 3
+),
+
+ranked_exercises AS (
+    SELECT
+        fk_muscle_id,
+        fk_exercise_id,
+        avg_activation,
+        total_measures,
+        unique_users,
+        ROW_NUMBER() OVER (
+            PARTITION BY fk_muscle_id 
+            ORDER BY avg_activation DESC, total_measures DESC
+        ) as muscle_ranked
+    FROM activation_stats
 )
 
-SELECT *
-FROM final
-
-{% if is_incremental() %}
-    WHERE muscle_activation_estimate_sk NOT IN (
-        SELECT muscle_activation_estimate_sk FROM {{ this }}
-    )
-{% endif %}
+SELECT 
+    re.fk_muscle_id,
+    re.fk_exercise_id,
+    dm.muscle_name AS muscle_name,  
+    de.exercise_name AS exercise_name,  
+    re.avg_activation AS avg_activation,
+    re.total_measures AS total_measures,
+    re.unique_users AS unique_users,
+    re.muscle_ranked AS muscle_ranked,
+    CASE 
+        WHEN re.avg_activation >= 0.8 THEN 'Activación Muy Alta'
+        WHEN re.avg_activation >= 0.6 THEN 'Activación Alta'
+        WHEN re.avg_activation >= 0.4 THEN 'Activación Media'
+        WHEN re.avg_activation >= 0.2 THEN 'Activación Baja'
+        ELSE 'Activación Muy Baja'
+    END AS activation_level
+FROM ranked_exercises re
+LEFT JOIN {{ ref('dim_muscle_group') }} dm ON re.fk_muscle_id = dm.muscle_id
+LEFT JOIN {{ ref('dim_exercise') }} de ON re.fk_exercise_id = de.exercise_id
+WHERE muscle_ranked <= 10
+ORDER BY re.fk_muscle_id, re.muscle_ranked;

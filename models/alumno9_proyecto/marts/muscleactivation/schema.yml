@@ -1,52 +1,57 @@
+# models/marts/biometrics/schema.yml
 version: 2
 
 models:
-  - name: fact_muscleactivation
-    description: "Muscle activation fact table - estimated muscle activation by exercise and muscle group"
+  - name: fact_muscle_activation
+    description: "Fact table tracking muscle activation metrics for exercises across users and sessions. Provides insights into exercise effectiveness for specific muscle groups."
+    meta:
+      owner: "Biometrics Team"
+      domain: "Fitness Analytics"
+    
     columns:
-      - name: muscle_activation_estimate_sk
-        description: "Unique surrogate key for muscle activation record"
-        tests:
-          - unique
-          - not_null
-      - name: fk_entry_id
-        description: "Reference to performance record in fact_exerciseperformance"
+      - name: fk_muscle_id
+        description: "Foreign key to the muscle group dimension"
         tests:
           - not_null
           - relationships:
-              to: ref('fact_exerciseperformance')
-              field: entry_id
-      - name: fk_user_id
-        description: "Foreign key to user"
-        tests:
-          - not_null
-          - relationships:
-              to: ref('dim_user')
-              field: user_id
+              to: ref('dim_muscle_group')
+              field: muscle_id
+      
       - name: fk_exercise_id
-        description: "Foreign key to exercise"
+        description: "Foreign key to the exercise dimension"
         tests:
           - not_null
           - relationships:
               to: ref('dim_exercise')
               field: exercise_id
-      - name: fk_muscle_id
-        description: "Foreign key to muscle group"
+      
+      - name: muscle_name
+        description: "Muscle group name (Spanish)"
+      
+      - name: exercise_name
+        description: "Exercise name (Spanish)"
+      
+      - name: avg_activation
+        description: "Average activation score for the exercise-muscle combination"
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_musclegroup')
-              field: muscle_id
-      - name: fk_session_id
-        description: "Foreign key to session"
+          
+      - name: total_measures
+        description: "Total number of measurements for this exercise-muscle combination"
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_session')
-              field: session_id
-      - name: fk_date_id
-        description: "Foreign key to date (session_date_id)"
+      
+      - name: unique_users
+        description: "Number of unique users who performed this exercise"
         tests:
           - not_null
-      - name: activation_score
-        description: "Estimated muscle activation score (0-1)"
+
+      - name: muscle_ranked
+        description: "Ranking of this exercise for the specific muscle group (1 = highest activation)"
+        tests:
+          - not_null
+
+      - name: activation_level
+        description: "Categorical activation level based on average score"
+        tests:
+          - not_null

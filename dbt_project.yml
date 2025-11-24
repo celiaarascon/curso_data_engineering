@@ -34,17 +34,12 @@ clean-targets:         # directories to be removed by `dbt clean`
 
 models:
   alumno9_proyecto:
-    +database: alumno9_proyecto_silver
     +materialized: view
 
     staging:
       +materialized: view
-      +database: alumno9_proyecto_silver
-      +schema: workout_data  
     marts:
       +materialized: table
-      +database: alumno9_proyecto_silver
-      +schema: workout_data
     
 snapshots:
     alumno9_proyecto:

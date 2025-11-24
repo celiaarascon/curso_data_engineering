@@ -11,12 +11,8 @@ models:
         description: "User's first name"
       - name: last_name
         description: "User's last name"
-      - name: age_id
-        description: "User's age group (18-24, 25-34, 35-44, 45+)"
       - name: sex_id
         description: "User's gender (M, F)"
-      - name: experience_level_id
-        description: "User's experience level (Beginner, Intermediate, Advanced)"
 
   - name: dim_session
     description: "Training session dimension with goal and perceived effort information"
@@ -35,10 +31,6 @@ models:
               field: user_id
       - name: session_goal
         description: "Session objective (Strength, Hypertrophy, Endurance, Recovery)"
-      - name: duration_min
-        description: "Session duration in minutes"
-      - name: subjective_effort
-        description: "Perceived effort numerical value (1-10)"
       - name: date_id
         description: "Date reference (FK to dim_date)"
         tests:
@@ -61,10 +53,7 @@ models:
         description: "Primary target muscle group"
       - name: secondary_muscle
         description: "Secondary involved muscle group"
-      - name: movement_type
-        description: "Movement type (Compound, Isolation)"
-      - name: equipment
-        description: "Required equipment"
+
 
   - name: dim_musclegroup
     description: "Muscle groups dimension"
@@ -86,10 +75,6 @@ models:
         description: "Unique date identifier in YYYYMMDD format"
         tests:
           - unique
-          - not_null
-      - name: calendar_day
-        description: "Complete date"
-        tests:
           - not_null
       - name: day
         description: "Day of the month (1-31)"

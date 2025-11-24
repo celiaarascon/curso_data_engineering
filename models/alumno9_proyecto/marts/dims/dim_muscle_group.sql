@@ -1,7 +1,8 @@
 {{
     config(
         materialized='table',
-        unique_key='muscle_id'
+        unique_key='muscle_id',
+        database='ALUMNO9_PROYECTO_GOLD'
     )
 }}
 
