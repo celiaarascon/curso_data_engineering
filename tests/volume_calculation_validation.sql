@@ -1,6 +1,6 @@
 {{ config(severity = 'error') }}
 
---Test singular para comprobar que volume_kg esta bien calculado
+-- Test singular para comprobar que volume_kg esta bien calculado
 WITH volume_calculation AS (
     SELECT 
         entry_id,
@@ -40,4 +40,3 @@ SELECT
     difference
 FROM volume_calculation
 WHERE difference > 0.01
-LIMIT 10  

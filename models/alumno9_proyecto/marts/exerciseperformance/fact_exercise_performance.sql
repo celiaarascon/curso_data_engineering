@@ -25,7 +25,7 @@ with
             fk_date_id,
             session_date,
             date_trunc('week', session_date) as week_start_date,
-            sum(volumen_kg) as volume_kg_total_weekly
+            sum(volumen_kg) as volume_kg_total_weekly --sum(volume_kg) de todos los ejercicios de una sesion
         from exercise_data
         group by fk_user_id, session_id, fk_date_id, session_date
     ),
@@ -57,7 +57,7 @@ with
             /* Volumen semanal acumulado por usuario */
             sum(wv.volume_kg_total_weekly) over (
                 partition by ed.fk_user_id, date_trunc('week', ed.session_date)
-            ) as total_weekly_volume_per_user,
+            ) as total_weekly_volume_per_user, --sum(volume_kg) de todas las sesiones de la semana
 
             /* Ranking de volumen semanal por usuario */
             rank() over (

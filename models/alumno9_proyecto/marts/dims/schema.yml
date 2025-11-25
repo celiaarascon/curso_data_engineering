@@ -27,8 +27,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('dim_user')
-              field: user_id
+              arguments:
+                to: ref('dim_user')
+                field: user_id
       - name: session_goal
         description: "Session objective (Strength, Hypertrophy, Endurance, Recovery)"
       - name: date_id
@@ -78,4 +79,3 @@ models:
         description: "Year (e.g., 2024)"
       - name: week
         description: "Week of the year (1-53)"
-     

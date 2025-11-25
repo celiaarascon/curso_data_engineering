@@ -32,16 +32,17 @@ models:
         description: "Type of movement performed"
         tests:
           - relationships:
-              to: ref('stg_workout_data__movement_type_exercises')
-              field: movement_type_id
+              arguments:
+                to: ref('stg_workout_data__movement_type_exercises')
+                field: movement_type_id
       - name: fk_equipment_id
         data_type: varchar
         description: "Equipment required"
         tests:
           - relationships:
-              to: ref('stg_workout_data__equipment_exercises')
-              field: equipment_id
-
+              arguments:
+                to: ref('stg_workout_data__equipment_exercises')
+                field: equipment_id
   - name: stg_workout_data__equipment
     description: "Staging: reference table for equipment used in exercises."
     config:
@@ -85,59 +86,62 @@ models:
       contract:
         enforced: true
     columns:
-    - name: entry_id
-      data_type: varchar
-      description: "Unique entry id"
-      constraints:
-        - type: not_null
-    - name: session_id
-      data_type: varchar
-      description: "Session id"
-      constraints:
-        - type: not_null
-      tests:
+      - name: entry_id
+        data_type: varchar
+        description: "Unique entry id"
+        constraints:
+          - type: not_null
+
+      - name: session_id
+        data_type: varchar
+        description: "Session id"
+        constraints:
+          - type: not_null
+        tests:
           - relationships:
-              to: ref('stg_workout_data__sessions')
-              field: session_id
-    - name: exercise_id
-      data_type: varchar
-      description: "Exercise id"
-      constraints:
-        - type: not_null
-      tests:
+              arguments:
+                to: ref('stg_workout_data__sessions')
+                field: session_id
+      - name: exercise_id
+        data_type: varchar
+        description: "Exercise id"
+        constraints:
+          - type: not_null
+        tests:
           - relationships:
-              to: ref('stg_workout_data__exercises')
-              field: exercise_id
-    - name: sets
-      data_type: integer
-      description: "Number of sets"
-    - name: reps
-      data_type: integer
-      description: "Number of reps"
-    - name: weight_kg
-      data_type: decimal(8,2)
-      description: "Weight in kg"
-    - name: volume_kg
-      data_type: decimal(8,2)
-      description: "Total volume calculated (sets * reps * weight)"
-      tests:
-        - not_null
-    - name: estimated_1_rep_max
-      data_type: decimal(8,2)
-      description: "Estimated one rep maximum"
+              arguments:
+                to: ref('stg_workout_data__exercises')
+                field: exercise_id
+      - name: sets
+        data_type: integer
+        description: "Number of sets"
+
+      - name: reps
+        data_type: integer
+        description: "Number of reps"
+
+      - name: weight_kg
+        data_type: decimal(8,2)
+        description: "Weight in kg"
+
+      - name: volume_kg
+        data_type: decimal(8,2)
+        description: "Total volume calculated (sets * reps * weight)"
+        tests:
+          - not_null
+
+      - name: estimated_1_rep_max
+        data_type: decimal(8,2)
+        description: "Estimated one rep maximum"
+
 
 
   - name: stg_workout_data__users
     description: "Staging: users"
-    config:
-      contract:
-        enforced: false
     columns:
       - name: user_id
         data_type: varchar
         description: "Unique user id"
-        constraints:
-        - type: not_null
       - name: first_name
         data_type: varchar
         description: "User first name"
@@ -149,15 +153,17 @@ models:
         description: "Foreign key to age dimension"
         tests:
           - relationships:
-              to: ref('stg_workout_data__users_age')
-              field: age_id
+              arguments:
+                to: ref('stg_workout_data__users_age')
+                field: age_id
       - name: fk_sex_id
         data_type: varchar
         description: "Foreign key to sex dimension"
         tests:
           - relationships:
-              to: ref('stg_workout_data__users_sex')
-              field: sex_id
+              arguments:
+                to: ref('stg_workout_data__users_sex')
+                field: sex_id
       - name: fk_experience_level_id
         data_type: varchar
         description: "Foreign key to experience level dimension"
@@ -165,139 +171,140 @@ models:
         description: "Timestamp de sincronización desde la capa bronze/ingest"
         tests:
           - not_null
-  
+
   - name: stg_workout_data__users_age
     description: "Staging: age groups dimension"
     config:
       contract:
-        enforced: false
+        enforced: true
     columns:
-    - name: age_id
-      data_type: varchar
-      description: "Surrogate key for age group"
-      constraints:
-        - type: not_null
-        - type: primary_key
-      tests:
-        - unique
-        - not_null     
-    - name: age_group
-      data_type: varchar
-      description: "Age group category"
-    - name: age_group_description
-      data_type: varchar
-      description: "Age group description"
-  
+      - name: age_id
+        data_type: varchar
+        description: "Surrogate key for age group"
+        constraints:
+          - type: not_null
+          - type: primary_key
+        tests:
+          - unique
+          - not_null
+      - name: age_group
+        data_type: varchar
+        description: "Age group category"
+      - name: age_group_description
+        data_type: varchar
+        description: "Age group description"
   - name: stg_workout_data__users_sex
     description: "Staging: sex dimension"
     config:
       contract:
-        enforced: false
+        enforced: true
     columns:
-    - name: sex_id
-      data_type: varchar
-      description: "Surrogate key for sex"
-    - name: sex
-      data_type: varchar
-      description: "Sex code: M/F"
-    - name: sex_description
-      data_type: varchar
-      description: "Sex description"
+      - name: sex_id
+        data_type: varchar
+        description: "Surrogate key for sex"
+      - name: sex
+        data_type: varchar
+        description: "Sex code: M/F"
+      - name: sex_description
+        data_type: varchar
+        description: "Sex description"
 
   - name: stg_workout_data__users_experience_level
     description: "Staging: experience level dimension"
     config:
       contract:
-        enforced: false
+        enforced: true
     columns:
-    - name: experience_level_id
-      data_type: varchar
-      description: "Surrogate key for experience level"
-    - name: experience_level_description
-      data_type: varchar
-      description: "Experience level description"
-  
+      - name: experience_level_id
+        data_type: varchar
+        description: "Surrogate key for experience level"
+      - name: experience_level_description
+        data_type: varchar
+        description: "Experience level description"
   - name: stg_workout_data__sessions
     description: "Staging: sessions"
     config:
       contract:
         enforced: false
     columns:
-    - name: session_id
-      data_type: varchar
-      description: "Unique session id"
-      constraints:
-        - type: not_null
-    - name: user_id
-      data_type: varchar
-      description: "User who did the session"
-      constraints:
-        - type: not_null
-    - name: duration_minutes
-      data_type: integer
-      description: "Duration in minutes"
-    - name: fk_session_goal_id
-      data_type: varchar
-      description: "Foreign key to session goals dimension"
-      tests:
+      - name: session_id
+        data_type: varchar
+        description: "Unique session id"
+        constraints:
+          - type: not_null
+      - name: user_id
+        data_type: varchar
+        description: "User who did the session"
+        constraints:
+          - type: not_null
+      - name: duration_minutes
+        data_type: integer
+        description: "Duration in minutes"
+      - name: fk_session_goal_id
+        data_type: varchar
+        description: "Foreign key to session goals dimension"
+        tests:
           - relationships:
-              to: ref('stg_workout_data__session_goals')
-              field: session_goal_id
-    - name: fk_subjective_effort_id
-      data_type: varchar
-      description: "Foreign key to subjective effort dimension"
-      tests:
+              arguments:
+                to: ref('stg_workout_data__session_goals')
+                field: session_goal_id
+      - name: fk_subjective_effort_id
+        data_type: varchar
+        description: "Foreign key to subjective effort dimension"
+        tests:
           - relationships:
-              to: ref('stg_workout_data__session_subjective_effort')
-              field: subjective_effort_id
-    - name: fk_session_date_id
-      data_type: varchar
-      description: "Foreign key to session dates dimension"
-      tests:
+              arguments:
+                to: ref('stg_workout_data__session_subjective_effort')
+                field: subjective_effort_id
+      - name: fk_session_date_id
+        data_type: varchar
+        description: "Foreign key to session dates dimension"
+        tests:
           - relationships:
-              to: ref('stg_workout_data__session_dates')
-              field: session_date_id
-
+              arguments:
+                to: ref('stg_workout_data__session_dates')
+                field: session_date_id
   - name: stg_workout_data__session_subjective_effort
     description: "Staging: subjective effort dimension with categories"
     config:
       contract:
         enforced: true
     columns:
-    - name: subjective_effort_id
-      data_type: varchar
-      description: "Surrogate key for subjective effort"
-      constraints:
-        - type: not_null
-        - type: unique
-    - name: subjective_effort
-      data_type: integer
-      description: "Numeric subjective effort value"
-      constraints:
-        - type: not_null
-    - name: subjective_effort_description
-      data_type: varchar
-      description: "Effort category (Low: 1-6, Medium: 7-8, High: 9-10)"
-      tests:
-        - accepted_values:
-            values: ['Low', 'Medium', 'High']
+      - name: subjective_effort_id
+        data_type: varchar
+        description: "Surrogate key for subjective effort"
+        constraints:
+          - type: not_null
+          - type: unique
+      - name: subjective_effort
+        data_type: integer
+        description: "Numeric subjective effort value"
+        constraints:
+          - type: not_null
+      - name: subjective_effort_description
+        data_type: varchar
+        description: "Effort category (Low: 1-6, Medium: 7-8, High: 9-10)"
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Low', 'Medium', 'High']
   - name: stg_workout_data__session_goals
     description: "Staging: distinct session goals dimension"
     config:
       contract:
         enforced: true
     columns:
-    - name: session_goal_id
-      data_type: varchar
-      description: "Surrogate key for session goal"
-      constraints:
-        - type: not_null
-        - type: unique
-    - name: session_goal
-      data_type: varchar
-      description: "Formatted session goal description"
-      constraints:
-        - type: not_null
+      - name: session_goal_id
+        data_type: varchar
+        description: "Surrogate key for session goal"
+        constraints:
+          - type: not_null
+          - type: unique
+      - name: session_goal
+        data_type: varchar
+        description: "Formatted session goal description"
+        constraints:
+          - type: not_null
 
   - name: stg_workout_data__session_dates
     description: "Staging: session dates with extracted components"
@@ -305,48 +312,49 @@ models:
       contract:
         enforced: true
     columns:
-    - name: session_date_id
-      data_type: varchar
-      description: "Surrogate key for session date"
-      constraints:
-        - type: not_null
-        - type: unique
-    - name: session_date
-      data_type: date
-      description: "Date of session"
-      constraints:
-        - type: not_null
-      tests:
-        - not_null
-    
-  - name: stg_workout_data__muscule_activation_estimate
+      - name: session_date_id
+        data_type: varchar
+        description: "Surrogate key for session date"
+        constraints:
+          - type: not_null
+          - type: unique
+      - name: session_date
+        data_type: date
+        description: "Date of session"
+        constraints:
+          - type: not_null
+        tests:
+          - not_null
+
+  - name: stg_workout_data__muscle_activation_estimate
     description: "Staging: muscle activation estimates"
     config:
       contract:
         enforced: true
+
     columns:
       - name: id
-        data_type: text
+        data_type: varchar
         description: "activation record id"
         constraints:
           - type: not_null
+
       - name: exercise_id
-        data_type: text
+        data_type: varchar
         description: "reference exercise"
         constraints:
           - type: not_null
+
       - name: fk_muscle_id
-        data_type: text
+        data_type: varchar
         description: "muscle name"
-        tests:
-          - relationships:
-              to: ref('stg_workout_data__muscle')
-              field: fk_muscle_id
+
       - name: activation_score
         data_type: numeric
         description: "activation numeric estimate"
         tests:
           - not_null
+
 
   - name: stg_workout_data__muscle
     description: "Staging: muscle reference table"
