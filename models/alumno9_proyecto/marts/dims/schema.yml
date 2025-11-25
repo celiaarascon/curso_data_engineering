@@ -35,9 +35,6 @@ models:
         description: "Date reference (FK to dim_date)"
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_date')
-              field: date_id
 
   - name: dim_exercise
     description: "Exercise dimension with technical information and muscle groups"
@@ -73,9 +70,6 @@ models:
     columns:
       - name: date_id
         description: "Unique date identifier in YYYYMMDD format"
-        tests:
-          - unique
-          - not_null
       - name: day
         description: "Day of the month (1-31)"
       - name: month

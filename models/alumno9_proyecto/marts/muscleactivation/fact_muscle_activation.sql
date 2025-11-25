@@ -1,4 +1,4 @@
-{{ 
+{{
     config(
         materialized='table'
     )
@@ -10,21 +10,19 @@ WITH muscle_activation_base AS (
         ma.fk_muscle_id,
         ma.activation_score,
         fep.entry_id AS fk_entry_id,  
-        du.user_id,
+        fep.fk_user_id AS user_id, 
         ds.date_id AS fk_session_date_id
     FROM {{ ref('stg_workout_data__muscle_activation_estimate') }} ma
     LEFT JOIN {{ ref('dim_exercise') }} de
         ON ma.exercise_id = de.exercise_id
     LEFT JOIN {{ ref('fact_exercise_performance') }} fep
-        ON de.exercise_id = fep.exercise_id
-    LEFT JOIN {{ ref('dim_users') }} du
-        ON fep.user_id = du.user_id
+        ON de.exercise_id = fep.fk_exercise_id  
     LEFT JOIN {{ ref('dim_session') }} ds
-        ON fep.session_id = ds.session_id
+        ON fep.fk_session_id = ds.session_id  
 
     WHERE 
         fep.entry_id IS NOT NULL
-        AND du.user_id IS NOT NULL
+        AND fep.fk_user_id IS NOT NULL  
         AND ma.exercise_id IS NOT NULL
         AND ma.fk_muscle_id IS NOT NULL
         AND ds.session_id IS NOT NULL
@@ -71,14 +69,14 @@ SELECT
     re.unique_users AS unique_users,
     re.muscle_ranked AS muscle_ranked,
     CASE 
-        WHEN re.avg_activation >= 0.8 THEN 'Activación Muy Alta'
-        WHEN re.avg_activation >= 0.6 THEN 'Activación Alta'
-        WHEN re.avg_activation >= 0.4 THEN 'Activación Media'
-        WHEN re.avg_activation >= 0.2 THEN 'Activación Baja'
-        ELSE 'Activación Muy Baja'
+        WHEN re.avg_activation >= 0.8 THEN 'Very High Activation'
+        WHEN re.avg_activation >= 0.6 THEN 'High Activation'
+        WHEN re.avg_activation >= 0.4 THEN 'Medium Activation'
+        WHEN re.avg_activation >= 0.2 THEN 'Low Activation'
+        ELSE 'Very Low Activation'
     END AS activation_level
 FROM ranked_exercises re
 LEFT JOIN {{ ref('dim_muscle_group') }} dm ON re.fk_muscle_id = dm.muscle_id
 LEFT JOIN {{ ref('dim_exercise') }} de ON re.fk_exercise_id = de.exercise_id
 WHERE muscle_ranked <= 10
-ORDER BY re.fk_muscle_id, re.muscle_ranked;
+ORDER BY re.fk_muscle_id, re.muscle_ranked

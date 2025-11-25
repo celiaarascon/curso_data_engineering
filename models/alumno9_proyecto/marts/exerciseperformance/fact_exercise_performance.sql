@@ -13,10 +13,21 @@ with
             ds.session_goal,
             ds.date_id as fk_date_id,
             dd.session_date
-
         from {{ ref("stg_workout_data__session_exercises") }} se
         inner join {{ ref("dim_session") }} ds on se.session_id = ds.session_id
         left join {{ ref("dim_date") }} dd on ds.date_id = dd.date_id
+    ),
+
+    weekly_volume as (
+        select
+            fk_user_id,
+            session_id,
+            fk_date_id,
+            session_date,
+            date_trunc('week', session_date) as week_start_date,
+            sum(volumen_kg) as volume_kg_total_weekly
+        from exercise_data
+        group by fk_user_id, session_id, fk_date_id, session_date
     ),
 
     final as (
@@ -41,62 +52,24 @@ with
                 else 'Unknown'
             end as intensity_category,
             ed.session_date,
-            /* Absolute progression */
-            weight_kg - first_value(weight_kg) over (
-                partition by fk_user_id, exercise_id order by session_date
-            ) as weight_change_from_start,
+            wv.volume_kg_total_weekly,
+            
+            /* Volumen semanal acumulado por usuario */
+            sum(wv.volume_kg_total_weekly) over (
+                partition by ed.fk_user_id, date_trunc('week', ed.session_date)
+            ) as total_weekly_volume_per_user,
 
-            /* Weeks since start */
-            nullif(
-                datediff(
-                    'week',
-                    first_value(session_date) over (
-                        partition by fk_user_id, exercise_id order by session_date
-                    ),
-                    session_date
-                ),
-                0
-            ) as weeks_since_start,
-
-            /* Weekly progress rate with 1 decimal */
-            case
-                when
-                    nullif(
-                        datediff(
-                            'week',
-                            first_value(session_date) over (
-                                partition by fk_user_id, exercise_id
-                                order by session_date
-                            ),
-                            session_date
-                        ),
-                        0
-                    )
-                    is null
-                then null
-                else
-                    round(
-                        (
-                            weight_kg - first_value(weight_kg) over (
-                                partition by fk_user_id, exercise_id
-                                order by session_date
-                            )
-                        ) / nullif(
-                            datediff(
-                                'week',
-                                first_value(session_date) over (
-                                    partition by fk_user_id, exercise_id
-                                    order by session_date
-                                ),
-                                session_date
-                            ),
-                            0
-                        ),
-                        1
-                    )
-            end as weekly_progress_rate
+            /* Ranking de volumen semanal por usuario */
+            rank() over (
+                partition by date_trunc('week', ed.session_date)
+                order by wv.volume_kg_total_weekly desc
+            ) as weekly_volume_rank,
 
         from exercise_data ed
+        left join weekly_volume wv 
+            on ed.session_id = wv.session_id 
+            and ed.fk_user_id = wv.fk_user_id
+            and ed.session_date = wv.session_date
     )
 
 select *

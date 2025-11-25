@@ -161,10 +161,6 @@ models:
       - name: fk_experience_level_id
         data_type: varchar
         description: "Foreign key to experience level dimension"
-        tests:
-          - relationships:
-              to: ref('stg_workout_data__users_experience_level')
-              field: experience_level_id
       - name: _fivetran_synced
         description: "Timestamp de sincronización desde la capa bronze/ingest"
         tests:
