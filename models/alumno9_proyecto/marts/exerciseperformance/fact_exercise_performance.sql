@@ -1,76 +1,82 @@
 {{ config(materialized="table") }}
 
-with
-    exercise_data as (
-        select
-            se.entry_id,
-            se.session_id,
-            se.exercise_id,
-            se.weight_kg,
-            se.volume_kg as volumen_kg,
-            se.estimated_1_rep_max as estimated_1rm,
-            ds.user_id as fk_user_id,
-            ds.session_goal,
-            ds.date_id as fk_date_id,
-            dd.session_date
-        from {{ ref("stg_workout_data__session_exercises") }} se
-        inner join {{ ref("dim_session") }} ds on se.session_id = ds.session_id
-        left join {{ ref("dim_date") }} dd on ds.date_id = dd.date_id
-    ),
+WITH
+-- 1. Datos base de ejercicios de sesión
+exercise_data AS (
+    SELECT
+        se.entry_id,
+        se.session_id,
+        se.exercise_id,
+        se.weight_kg,
+        se.volume_kg AS volumen_kg,
+        se.estimated_1_rep_max AS estimated_1rm,
+        ds.user_id AS fk_user_id,
+        ds.session_goal,
+        ds.date_id AS fk_date_id,
+        dd.session_date
+    FROM {{ ref("stg_workout_data__session_exercises") }} se
+    INNER JOIN {{ ref("dim_session") }} ds 
+        ON se.session_id = ds.session_id
+    LEFT JOIN {{ ref("dim_date") }} dd 
+        ON ds.date_id = dd.date_id
+),
 
-    weekly_volume as (
-        select
-            fk_user_id,
-            session_id,
-            fk_date_id,
-            session_date,
-            date_trunc('week', session_date) as week_start_date,
-            sum(volumen_kg) as volume_kg_total_weekly --sum(volume_kg) de todos los ejercicios de una sesion
-        from exercise_data
-        group by fk_user_id, session_id, fk_date_id, session_date
-    ),
+-- 2. Join explícito a dim_user para lineage
+exercise_with_user AS (
+    SELECT
+        *
+    FROM exercise_data ed
+    LEFT JOIN {{ ref("dim_users") }} du
+        ON ed.fk_user_id = du.user_id
+),
 
-    final as (
-        select
-            ed.entry_id,
-            ed.fk_user_id,
-            ed.exercise_id as fk_exercise_id,
-            ed.session_id as fk_session_id,
-            ed.fk_date_id,
-            ed.weight_kg,
-            ed.volumen_kg,
-            ed.estimated_1rm,
-            (estimated_1rm - weight_kg) as diff_weight_vs_1rm,
-            ed.session_goal,
-            case
-                when estimated_1rm > 0 and weight_kg / estimated_1rm >= 0.80
-                then 'Strength'
-                when estimated_1rm > 0 and weight_kg / estimated_1rm >= 0.60
-                then 'Hypertrophy'
-                when estimated_1rm > 0
-                then 'Endurance'
-                else 'Unknown'
-            end as intensity_category,
-            ed.session_date,
-            wv.volume_kg_total_weekly,
-            
-            /* Volumen semanal acumulado por usuario */
-            sum(wv.volume_kg_total_weekly) over (
-                partition by ed.fk_user_id, date_trunc('week', ed.session_date)
-            ) as total_weekly_volume_per_user, --sum(volume_kg) de todas las sesiones de la semana
+-- 3. Volumen semanal por usuario
+weekly_volume AS (
+    SELECT
+        fk_user_id,
+        session_id,
+        fk_date_id,
+        session_date,
+        DATE_TRUNC('week', session_date) AS week_start_date,
+        SUM(volumen_kg) AS volume_kg_total_weekly
+    FROM exercise_with_user
+    GROUP BY fk_user_id, session_id, fk_date_id, session_date
+),
 
-            /* Ranking de volumen semanal por usuario */
-            rank() over (
-                partition by date_trunc('week', ed.session_date)
-                order by wv.volume_kg_total_weekly desc
-            ) as weekly_volume_rank,
+-- 4. Datos finales del hecho
+final AS (
+    SELECT
+        e.entry_id,
+        e.fk_user_id,
+        e.exercise_id AS fk_exercise_id,
+        e.session_id AS fk_session_id,
+        e.fk_date_id,
+        e.weight_kg,
+        e.volumen_kg,
+        e.estimated_1rm,
+        (e.estimated_1rm - e.weight_kg) AS diff_weight_vs_1rm,
+        e.session_goal,
+        CASE 
+            WHEN e.estimated_1rm > 0 AND e.weight_kg / e.estimated_1rm >= 0.80 THEN 'Strength'
+            WHEN e.estimated_1rm > 0 AND e.weight_kg / e.estimated_1rm >= 0.60 THEN 'Hypertrophy'
+            WHEN e.estimated_1rm > 0 THEN 'Endurance'
+            ELSE 'Unknown'
+        END AS intensity_category,
+        e.session_date,
+        wv.volume_kg_total_weekly,
+        SUM(wv.volume_kg_total_weekly) OVER (
+            PARTITION BY e.fk_user_id, DATE_TRUNC('week', e.session_date)
+        ) AS total_weekly_volume_per_user,
+        RANK() OVER (
+            PARTITION BY DATE_TRUNC('week', e.session_date)
+            ORDER BY wv.volume_kg_total_weekly DESC
+        ) AS weekly_volume_rank
+    FROM exercise_with_user e
+    LEFT JOIN weekly_volume wv
+        ON e.session_id = wv.session_id
+        AND e.fk_user_id = wv.fk_user_id
+        AND e.session_date = wv.session_date
+)
 
-        from exercise_data ed
-        left join weekly_volume wv 
-            on ed.session_id = wv.session_id 
-            and ed.fk_user_id = wv.fk_user_id
-            and ed.session_date = wv.session_date
-    )
-
-select *
-from final
+SELECT *
+FROM final
