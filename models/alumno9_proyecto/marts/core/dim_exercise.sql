@@ -12,8 +12,7 @@ with
             e.exercise_id,
             e.exercise_name,
             e.fk_primary_muscle_id,
-            e.fk_secondary_muscle_id,
-            e.fk_movement_type_id,
+            e.fk_secondary_muscle_id
         from {{ ref("stg_workout_data__exercises") }} e
     )
 

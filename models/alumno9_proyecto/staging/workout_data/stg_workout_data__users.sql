@@ -2,8 +2,7 @@
     config(
         materialized="incremental",
         unique_key="user_id",
-        database="ALUMNO9_PROYECTO_SILVER",
-        on_schema_change="sync_all_columns",
+        database="ALUMNO9_PROYECTO_SILVER"
     )
 }}
 

@@ -4,6 +4,6 @@ packages:
   - package: dbt-labs/codegen
     version: 0.13.1
   - package: metaplane/dbt_expectations
-    version: 0.10.9  
+    version: 0.10.9
   - package: godatadriven/dbt_date
-    version: 0.17.0 
+    version: 0.17.0

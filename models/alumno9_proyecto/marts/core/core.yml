@@ -1,0 +1,222 @@
+models:
+  - name: dim_users
+    description: "User dimension with demographic and experience information"
+    columns:
+      - name: user_id
+        description: "Unique user identifier"
+        tests:
+          - unique
+          - not_null
+      - name: first_name
+        description: "User's first name"
+      - name: last_name
+        description: "User's last name"
+      - name: sex_id
+        description: "User's gender (M, F)"
+
+  - name: dim_session
+    description: "Training session dimension with goal and perceived effort information"
+    columns:
+      - name: session_id
+        description: "Unique session identifier"
+        tests:
+          - unique
+          - not_null
+      - name: user_id
+        description: "User who performed the session (FK to dim_users)"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_users')
+                field: user_id
+      - name: session_goal
+        description: "Session objective (Strength, Hypertrophy, Endurance, Recovery)"
+      - name: date_id
+        description: "Date reference (FK to dim_date)"
+        tests:
+          - not_null
+
+  - name: dim_exercise
+    description: "Exercise dimension with technical information and muscle groups"
+    columns:
+      - name: exercise_id
+        description: "Unique exercise identifier"
+        tests:
+          - unique
+          - not_null
+      - name: exercise_name
+        description: "Exercise name"
+      - name: primary_muscle
+        description: "Primary target muscle group"
+      - name: secondary_muscle
+        description: "Secondary involved muscle group"
+
+  - name: dim_musclegroup
+    description: "Muscle groups dimension"
+    columns:
+      - name: muscle_id
+        description: "Unique muscle group identifier"
+        tests:
+          - unique
+          - not_null
+      - name: muscle_name
+        description: "Muscle group name"
+        tests:
+          - not_null
+
+  - name: dim_date
+    description: "Date dimension for temporal analysis"
+    columns:
+    - name: date_day
+      description: "The actual date (YYYY-MM-DD format)"
+    - name: day_of_week
+      description: "Day of the week as number (1=Monday to 7=Sunday)"
+    - name: day_of_week_name
+      description: "Full name of the day of the week (e.g., Monday, Tuesday)"
+    - name: day_of_month
+      description: "Day of the month (1-31)"
+    - name: week_of_year
+      description: "Week number of the year (1-53)"
+    - name: month_name
+      description: "Full name of the month (e.g., January, February)"
+    - name: month_of_year
+      description: "Month of the year as number (1-12)"
+
+  - name: fact_exercise_performance
+    description: "Exercise performance metrics with weekly progress tracking"
+    columns:
+      - name: entry_id
+        description: "Unique identifier for each exercise entry"
+        tests:
+          - unique
+          - not_null
+
+      - name: fk_user_id
+        description: "Foreign key referencing the user"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_users')
+                field: user_id
+      - name: fk_exercise_id
+        description: "Foreign key referencing the exercise"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_exercise')
+                field: exercise_id
+      - name: fk_session_id
+        description: "Foreign key referencing the workout session"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_session')
+                field: session_id
+      - name: fk_date_id
+        description: "Foreign key referencing the date dimension"
+      - name: weight_kg
+        description: "Weight used for the exercise in kilograms"
+        tests:
+          - not_null
+
+      - name: volumen_kg
+        description: "Total volume lifted in kilograms (sets x reps x weight)"
+
+      - name: estimated_1rm
+        description: "Estimated one-repetition maximum weight"
+
+      - name: diff_weight_vs_1rm
+        description: "Difference between estimated 1RM and actual weight used"
+
+      - name: session_goal
+        description: "Goal of the training session"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['strength', 'hypertrophy', 'endurance', 'recovery']
+
+      - name: intensity_category
+        description: "Training intensity category based on percentage of 1RM (Strength, Hypertrophy, Endurance)"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Strength', 'Hypertrophy', 'Endurance', 'recovery']
+
+      - name: session_date
+        description: "Date when the session occurred"
+        tests:
+          - not_null
+
+      - name: weight_change_from_start
+        description: "Absolute change in weight from the first session"
+
+      - name: weeks_since_start
+        description: "Number of weeks since the first session"
+
+      - name: weekly_progress_rate
+        description: "Average weekly progress rate in kilograms, rounded to 1 decimal place"
+
+  # -------------------------
+  # FACT: MUSCLE ACTIVATION
+  # -------------------------
+
+  - name: fact_muscle_activation
+    description: "Fact table tracking muscle activation metrics for exercises across users and sessions."
+    columns:
+      - name: fk_muscle_id
+        description: "Foreign key to the muscle group dimension"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_musclegroup')
+                field: muscle_id
+      - name: fk_exercise_id
+        description: "Foreign key to the exercise dimension"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_exercise')
+                field: exercise_id
+      - name: muscle_name
+        description: "Muscle group name (Spanish)"
+
+      - name: exercise_name
+        description: "Exercise name (Spanish)"
+
+      - name: avg_activation
+        description: "Average activation score for the exercise-muscle combination"
+        tests:
+          - not_null
+
+      - name: total_measures
+        description: "Total number of measurements for this exercise-muscle combination"
+        tests:
+          - not_null
+
+      - name: unique_users
+        description: "Number of unique users who performed this exercise"
+        tests:
+          - not_null
+
+      - name: muscle_ranked
+        description: "Ranking of this exercise for the specific muscle group (1 = highest activation)"
+        tests:
+          - not_null
+
+      - name: activation_level
+        description: "Categorical activation level based on average score"
+        tests:
+          - not_null
+
+    config:
+      meta:
+        owner: "Biometrics Team"
+        domain: "Fitness Analytics"
